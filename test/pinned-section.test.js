@@ -179,3 +179,46 @@ test('closing the active pinned tab leaves a sleeping pinned neighbour asleep', 
   assert.equal(tabs.find((tab) => tab.active).id, recent);
   assert.equal(tabs.find((tab) => tab.id === sleeper).discarded, true);
 });
+
+test('the divider favicon draws nothing', async () => {
+  const divider = (await extension.tabs()).find((tab) => tab.isDivider);
+  const page = await extension.pageFor(divider.id);
+  const icon = await page.$eval('link[rel=icon]', (link) => decodeURIComponent(link.href));
+  assert.match(icon, /^data:image\/svg\+xml,<svg [^>]*\/>$/);
+});
+
+const showSidebarWidth = async (page, width) => {
+  const outerWidth = await page.evaluate(() => outerWidth);
+  await page.setViewport({ width: outerWidth - width, height: 600 });
+};
+
+const dividerTitle = async () => {
+  const divider = (await extension.tabs()).find((tab) => tab.isDivider);
+  return extension.run(async (id) => (await chrome.tabs.get(id)).title, divider.id);
+};
+
+test('the divider rule resizes with the sidebar so it stays centred in the tab', async () => {
+  const id = await extension.open(site.url('sidebar'));
+  const page = await extension.pageFor(id);
+
+  await showSidebarWidth(page, 231);
+  await extension.waitFor(async () => (await dividerTitle()) === '─'.repeat(13), { message: 'rule for 231px sidebar' });
+
+  await showSidebarWidth(page, 400);
+  await extension.waitFor(async () => (await dividerTitle()) === '─'.repeat(27), { message: 'rule for 400px sidebar' });
+
+  await extension.close([id]);
+});
+
+test('zooming a page does not change the divider rule', async () => {
+  const id = await extension.open(site.url('zoomed'));
+  const page = await extension.pageFor(id);
+  await showSidebarWidth(page, 400);
+  await extension.waitFor(async () => (await dividerTitle()) === '─'.repeat(27));
+
+  await extension.run((id) => chrome.tabs.setZoom(id, 1.5), id);
+  await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 500)));
+  assert.equal(await dividerTitle(), '─'.repeat(27));
+
+  await extension.close([id]);
+});

@@ -23,6 +23,13 @@ auto-grouping on top of Chrome's native tab bar, with no custom UI.
 - Implement the change, then rerun `npm test` and fix until everything passes.
 - `npm test` drives Chrome for Testing headlessly with the extension loaded, one file at a time.
 
+## Gotchas
+
+- Hidden tabs keep their old size and get no `resize` events, so the divider cannot measure the
+  sidebar itself. `src/content/sidebar-width.js` reports `outerWidth − innerWidth` from the
+  visible page and `src/divider.js` retitles the divider, scaling `innerWidth` by the tab's zoom.
+  Headless tests simulate a sidebar by shrinking the viewport with `page.setViewport`.
+
 ## Documentation maintenance
 
 - Update `AGENTS.md` whenever implementation changes project-wide architecture, workflows,

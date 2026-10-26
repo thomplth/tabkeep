@@ -21,6 +21,10 @@ A divider tab (`────────`) splits the tab bar. Everything above 
 - To delete a pinned tab for good, drag it below the divider first, then close it.
 - Each window's pinned section is saved under an ID stored in its divider's URL, so it survives
   Chrome restarts and reopening a closed window.
+- The divider's rule resizes to stay centred as you resize the vertical sidebar. It updates when
+  a regular web page in that window loads or resizes (not on `chrome://` pages such as New Tab).
+  An open side panel or docked DevTools is counted as sidebar, so the rule runs long while one is
+  open.
 
 ## Auto-grouping
 
