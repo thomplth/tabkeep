@@ -2,16 +2,23 @@
   "manifest_version": 3,
   "name": "Tabkeep",
   "version": "0.2.6",
-  "description": "Arc-style pinned section and recent-tab switcher on Chrome's native tab bar.",
-  "permissions": ["tabs", "tabGroups", "storage"],
+  "description": "Arc-style pinned section, recent-tab switcher and tab auto-grouping on Chrome's native tab bar.",
+  "permissions": ["tabs", "tabGroups", "storage", "webNavigation"],
   "background": { "service_worker": "src/background.js", "type": "module" },
   "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content/modifier-click.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    },
     {
       "matches": ["<all_urls>"],
       "js": ["src/content/switcher.js"],
       "run_at": "document_start"
     }
   ],
+  "options_page": "options.html",
   "commands": {
     "mru-older": {
       "suggested_key": { "default": "Alt+W" },

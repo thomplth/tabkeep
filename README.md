@@ -1,6 +1,6 @@
 # Tabkeep
 
-Arc-style pinned tabs on top of Chrome's native (vertical) tab bar. No custom UI.
+Arc-style pinned tabs and AI tab grouping on top of Chrome's native (vertical) tab bar. No custom UI.
 
 ## Install
 
@@ -21,6 +21,18 @@ A divider tab (`────────`) splits the tab bar. Everything above 
 - To delete a pinned tab for good, drag it below the divider first, then close it.
 - Each window's pinned section is saved under an ID stored in its divider's URL, so it survives
   Chrome restarts and reopening a closed window.
+
+## Auto-grouping
+
+Cmd+click (or middle-click) a link:
+
+- from a loose tab: both tabs become a new group;
+- from a grouped tab: the new tab joins that group;
+- from a pinned tab: the new tab gets its own group below the divider.
+
+The group is named immediately after the site, then renamed by Chrome's built-in on-device model
+(Gemini Nano) when it is available. Nothing is sent to any paid API. Renaming a group yourself
+before the model answers wins.
 
 ## Recent-tab switcher
 

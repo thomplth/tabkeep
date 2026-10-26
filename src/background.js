@@ -12,6 +12,7 @@ import {
   resetActiveTabToHome,
 } from './section.js';
 import { cancelSwitcher, commitSwitcher, forgetTab, replaceTab, stepSwitcher } from './mru.js';
+import { handleNavigationTarget, recordModifierClick } from './autogroup.js';
 
 chrome.runtime.onInstalled.addListener(() => prepareAllWindows());
 chrome.runtime.onStartup.addListener(() => prepareAllWindows());
@@ -57,8 +58,10 @@ const commands = {
 };
 chrome.commands.onCommand.addListener((command) => commands[command] && serial(commands[command]));
 
-chrome.runtime.onMessage.addListener((message) => {
+chrome.runtime.onMessage.addListener((message, sender) => {
+  if (message?.type === 'modifier-click' && sender.tab) recordModifierClick(sender.tab.id);
   if (message?.type === 'switcher-step') serial(() => stepSwitcher(message.direction));
   if (message?.type === 'switcher-commit') serial(() => commitSwitcher(message.tabId));
   if (message?.type === 'switcher-cancel') cancelSwitcher();
 });
+chrome.webNavigation.onCreatedNavigationTarget.addListener((details) => handleNavigationTarget(details));
