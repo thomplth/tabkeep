@@ -11,7 +11,7 @@ import {
   refresh,
   resetActiveTabToHome,
 } from './section.js';
-import { forgetTab, replaceTab } from './mru.js';
+import { cancelSwitcher, commitSwitcher, forgetTab, replaceTab, stepSwitcher } from './mru.js';
 
 chrome.runtime.onInstalled.addListener(() => prepareAllWindows());
 chrome.runtime.onStartup.addListener(() => prepareAllWindows());
@@ -51,7 +51,14 @@ chrome.tabGroups.onUpdated.addListener((group) => serial(() => refresh(group.win
 chrome.tabGroups.onMoved.addListener((group) => serial(() => refresh(group.windowId)));
 
 const commands = {
+  'mru-older': () => stepSwitcher('older'),
+  'mru-newer': () => stepSwitcher('newer'),
   'reset-to-home': resetActiveTabToHome,
 };
 chrome.commands.onCommand.addListener((command) => commands[command] && serial(commands[command]));
 
+chrome.runtime.onMessage.addListener((message) => {
+  if (message?.type === 'switcher-step') serial(() => stepSwitcher(message.direction));
+  if (message?.type === 'switcher-commit') serial(() => commitSwitcher(message.tabId));
+  if (message?.type === 'switcher-cancel') cancelSwitcher();
+});

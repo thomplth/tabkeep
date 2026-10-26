@@ -2,10 +2,25 @@
   "manifest_version": 3,
   "name": "Tabkeep",
   "version": "0.2.6",
-  "description": "Arc-style pinned section on Chrome's native tab bar.",
+  "description": "Arc-style pinned section and recent-tab switcher on Chrome's native tab bar.",
   "permissions": ["tabs", "tabGroups", "storage"],
   "background": { "service_worker": "src/background.js", "type": "module" },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content/switcher.js"],
+      "run_at": "document_start"
+    }
+  ],
   "commands": {
+    "mru-older": {
+      "suggested_key": { "default": "Alt+W" },
+      "description": "Switch to the previously used tab (hold the modifier to keep cycling)"
+    },
+    "mru-newer": {
+      "suggested_key": { "default": "Alt+Shift+W" },
+      "description": "Cycle recently used tabs in reverse"
+    },
     "reset-to-home": {
       "suggested_key": { "default": "Alt+Shift+R" },
       "description": "Send the current pinned tab back to its pinned URL"

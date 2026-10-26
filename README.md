@@ -22,6 +22,34 @@ A divider tab (`────────`) splits the tab bar. Everything above 
 - Each window's pinned section is saved under an ID stored in its divider's URL, so it survives
   Chrome restarts and reopening a closed window.
 
+## Recent-tab switcher
+
+`Option+W` switches to the previously used tab; hold `Option` and keep pressing `W` to go further
+back, with a switcher list on screen. Release to switch, `Esc` to cancel. Add `Shift` to go the
+other way. The order skips the divider and pinned tabs that were closed (until you visit them
+again).
+
+Chrome does not let extensions bind ``Cmd+` ``. Two ways to get it:
+
+- **In web pages only:** turn off macOS *System Settings → Keyboard → Keyboard Shortcuts →
+  Keyboard → Move focus to next window*. Tabkeep then catches ``Cmd+` `` inside pages itself.
+- **Everywhere (recommended):** a [Karabiner-Elements](https://karabiner-elements.pqrs.org)
+  rule that turns ``Cmd+` `` into `Option+W` in Chrome:
+
+```json
+{
+  "description": "Chrome: Cmd+` → Tabkeep recent-tab switcher",
+  "manipulators": [
+    {
+      "type": "basic",
+      "from": { "key_code": "grave_accent_and_tilde", "modifiers": { "mandatory": ["command"], "optional": ["shift"] } },
+      "to": [{ "key_code": "w", "modifiers": ["option"] }],
+      "conditions": [{ "type": "frontmost_application_if", "bundle_identifiers": ["^com\\.google\\.Chrome$"] }]
+    }
+  ]
+}
+```
+
 ## Tests
 
 `npm test` drives Chrome for Testing headlessly with the extension loaded.
