@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Tabkeep",
+  "version": "0.2.6",
+  "description": "Arc-style pinned section on Chrome's native tab bar.",
+  "permissions": ["tabs", "tabGroups", "storage"],
+  "background": { "service_worker": "src/background.js", "type": "module" },
+  "commands": {
+    "reset-to-home": {
+      "suggested_key": { "default": "Alt+Shift+R" },
+      "description": "Send the current pinned tab back to its pinned URL"
+    }
+  }
+}
