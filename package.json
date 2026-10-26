@@ -1,0 +1,12 @@
+{
+  "name": "tabkeep",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "node --test --test-concurrency=1 test/*.test.js"
+  },
+  "devDependencies": {
+    "puppeteer": "^25.16.0"
+  },
+  "type": "module",
+  "private": true
+}
