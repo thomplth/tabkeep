@@ -39,8 +39,11 @@ auto-grouping on top of Chrome's native tab bar, with no custom UI.
   Headless tests simulate a sidebar by shrinking the viewport with `page.setViewport`.
 
 - Chrome inserts tabs opened from a pinned tab (`window.open`, `rel=noopener` links) inside the
-  pinned group and misreports `openerTabId`, so `handleCreated` moves every new tab out of the
-  section except the divider and tabs Tabkeep itself resurrects (`selfCreatedTabs`).
+  pinned group and misreports `openerTabId`; only `webNavigation.onCreatedNavigationTarget` names
+  the real source, so `handleNavigationTarget` is what moves them below the divider.
+- Never move other new tabs out of a pinned group. Chrome syncs every tab group as a saved group
+  and periodically reopens saved tabs it finds missing; moving them out leaves them in the saved
+  group, so Chrome reopens them again every few minutes.
 - Chrome allows at most four `suggested_key` commands; a fifth makes the extension fail to load.
   Page-level key catching for `Cmd+…` chords was dropped because Chrome's menu takes them first.
 - Headless Chrome never delivers shortcuts to `chrome.commands`; tests call `self.runCommand`

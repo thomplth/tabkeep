@@ -2,7 +2,6 @@ import { serial } from './serial.js';
 import {
   activeTabId,
   handleActivated,
-  handleCreated,
   handleRemoved,
   handleReplaced,
   noteDiscarded,
@@ -21,7 +20,7 @@ chrome.runtime.onInstalled.addListener(() => prepareAllWindows());
 chrome.runtime.onStartup.addListener(() => prepareAllWindows());
 chrome.windows.onCreated.addListener((window) => prepareWindow(window.id));
 
-chrome.tabs.onCreated.addListener((tab) => serial(() => handleCreated(tab)));
+chrome.tabs.onCreated.addListener((tab) => serial(() => refresh(tab.windowId)));
 chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
   const removedAt = Date.now();
   serial(() => handleRemoved(tabId, removeInfo, removedAt));

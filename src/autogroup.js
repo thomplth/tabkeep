@@ -27,7 +27,11 @@ async function consumeModifierClick(sourceTabId) {
   return false;
 }
 
+// Chrome misreports openerTabId for tabs a pinned tab opens, but moving every new tab out of the
+// section instead would fight saved-group sync, which reopens whatever leaves a pinned group.
 export async function handleNavigationTarget({ sourceTabId, tabId }) {
+  if (await serial(() => isInSection(sourceTabId))) return serial(() => moveBelowDivider(tabId));
+
   const { groupAllLinks } = await chrome.storage.local.get('groupAllLinks');
   if (!groupAllLinks && !(await consumeModifierClick(sourceTabId))) return;
 
@@ -40,10 +44,7 @@ async function groupWithSource(sourceTabId, tabId) {
   if (!source || !target || source.windowId !== target.windowId) return null;
 
   let groupId;
-  if (await isInSection(sourceTabId)) {
-    await moveBelowDivider(tabId);
-    return null;
-  } else if (source.groupId !== -1) {
+  if (source.groupId !== -1) {
     if (target.groupId !== source.groupId) await chrome.tabs.group({ groupId: source.groupId, tabIds: [tabId] });
     return null;
   } else {

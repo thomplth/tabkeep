@@ -11,7 +11,6 @@ const LAYOUT_RETENTION_MS = 30 * 24 * 60 * 60 * 1_000;
 const CLOSE_ACTIVATION_WINDOW_MS = 1_000;
 
 const expectedRemovals = new Set();
-const selfCreatedTabs = new Set();
 const lastRemovalAt = new Map();
 const asleepTabs = new Set();
 const pendingDiscards = new Map();
@@ -178,15 +177,6 @@ export async function isInSection(tabId) {
   return (await loadState()).known[tabId]?.inSection ?? false;
 }
 
-// Chrome inserts tabs opened from a pinned tab next to it, often inside its group, and reports the
-// most recently opened tab rather than the pinned tab as their opener.
-export async function handleCreated(tab) {
-  const state = await loadState();
-  const ownTab = selfCreatedTabs.delete(tab.id) || isDivider(tab);
-  if (state.readyWindows[tab.windowId] && !ownTab) await moveBelowDivider(tab.id);
-  await refresh(tab.windowId);
-}
-
 const dividerIndexIn = async (windowId) => (await chrome.tabs.query({ windowId })).find(isDivider)?.index;
 
 export async function moveBelowDivider(tabId) {
@@ -276,7 +266,6 @@ async function resurrect(info, home) {
     active: false,
     pinned: info.pinned,
   });
-  selfCreatedTabs.add(tab.id);
   discardWhenLoaded(tab.id, { waitForTitle: true });
   const state = await loadState();
   state.homes[tab.id] = home;

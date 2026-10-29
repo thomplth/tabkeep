@@ -19,8 +19,8 @@ A divider tab (`────────`) splits the tab bar. Everything above 
 - Closing a pinned tab brings it straight back, asleep, at the same position with the URL it had
   when it was pinned. Closing a whole pinned group recreates the group.
 - Native pinned tabs (the compact icon row) behave the same way.
-- New tabs never land in the pinned section: links and pop-ups opened from a pinned tab go below
-  the divider, never inside the pinned group.
+- Links and pop-ups opened from a pinned tab go below the divider, never inside the pinned group.
+  Tabs Chrome itself restores into a synced pinned group stay in it.
 - *Send the current pinned tab back to its pinned URL* has no default shortcut (Chrome allows an
   extension four); assign one in `chrome://extensions/shortcuts`.
 - Closing the active pinned tab takes you to your most recently used tab, not its neighbour.

@@ -105,6 +105,23 @@ test('closing several pinned tabs at once brings every one back above the divide
   });
 });
 
+test('a tab Chrome itself adds to a pinned group stays in the group', async () => {
+  const a = await extension.open(site.url('release-console'));
+  const b = await extension.open(site.url('release-signin'));
+  const groupId = await extension.group([a, b], 'Synced');
+  await extension.moveGroup(groupId, await extension.dividerIndex());
+
+  const restored = await extension.run(
+    async (index) => (await chrome.tabs.create({ index, url: 'about:blank', active: false })).id,
+    (await extension.tabs()).find((tab) => tab.id === b).index,
+  );
+  await extension.settle(1_000);
+
+  const tab = (await extension.tabs()).find((candidate) => candidate.id === restored);
+  assert.equal(tab.groupTitle, 'Synced');
+  assert.ok(tab.index < (await extension.dividerIndex()));
+});
+
 test('a group dragged back below the divider closes for real', async () => {
   const a = await extension.open(site.url('scratch'));
   const groupId = await extension.group([a], 'Scratch');

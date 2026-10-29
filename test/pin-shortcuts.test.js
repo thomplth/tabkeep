@@ -39,6 +39,18 @@ test('a window.open from a pinned tab lands below the divider instead of joining
   assert.deepEqual((await extension.layout()).slice(0, await extension.dividerIndex()), pinnedBefore);
 });
 
+test('a target=_blank link from a pinned tab lands below the divider instead of joining the pinned group', async () => {
+  const [, source] = await pinnedGroup('Blank');
+  const pinnedBefore = (await extension.layout()).slice(0, await extension.dividerIndex());
+  const page = await extension.pageFor(source);
+
+  await page.click('#blank');
+  await extension.waitFor(async () => (await extension.tabs()).some((tab) => tab.url === site.url('Blank-b-blank')));
+  await extension.settle(1_000);
+
+  assert.deepEqual((await extension.layout()).slice(0, await extension.dividerIndex()), pinnedBefore);
+});
+
 test('the pin shortcut on a tab below the divider pins it at the bottom of the pinned section', async () => {
   const id = await extension.open(site.url('to-pin'));
   await extension.command('toggle-pinned', id);
