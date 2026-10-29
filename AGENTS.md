@@ -17,11 +17,11 @@ auto-grouping on top of Chrome's native tab bar, with no custom UI.
 - After pushing, reload the extension in the human's Chrome so the change is live. It is installed
   unpacked from the primary checkout (ID `oldnhmcppohabfajfbnbaghoilpmcgeh`, profile `Default`),
   so no install step is needed; if it is missing, ask before loading it. Reload headlessly by
-  opening `reload.html`, which calls `chrome.runtime.reload()` and closes with the old extension:
-  `osascript -e 'tell application "Google Chrome" to tell front window to make new tab with
-  properties {URL:"chrome-extension://oldnhmcppohabfajfbnbaghoilpmcgeh/reload.html"}'`.
-  Confirm with the `version` in the profile's `Secure Preferences` for that ID. Fall back to
-  the computer-use skill on `chrome://extensions` only if this fails.
+  opening `chrome-extension://oldnhmcppohabfajfbnbaghoilpmcgeh/reload.html` with AppleScript in
+  the window that has a `divider.html` tab. Chrome's front window may belong to another profile,
+  where the URL does nothing. `reload.html` calls `chrome.runtime.reload()`, and its tab
+  disappearing confirms the reload. The first reload after `reload.html` was added, or after a
+  failed load, must use the **Reload** button on `chrome://extensions` via the computer-use skill.
 - The repository is public. Never commit credentials, tokens, or personal data.
 
 ## Test-driven development
