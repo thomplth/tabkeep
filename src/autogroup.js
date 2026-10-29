@@ -42,7 +42,7 @@ async function groupWithSource(sourceTabId, tabId) {
   let groupId;
   if (await isInSection(sourceTabId)) {
     await moveBelowDivider(tabId);
-    groupId = await chrome.tabs.group({ tabIds: [tabId] });
+    return null;
   } else if (source.groupId !== -1) {
     if (target.groupId !== source.groupId) await chrome.tabs.group({ groupId: source.groupId, tabIds: [tabId] });
     return null;

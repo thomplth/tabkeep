@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Tabkeep",
-  "version": "0.2.6",
+  "version": "0.3.0",
   "description": "Arc-style pinned section, recent-tab switcher and tab auto-grouping on Chrome's native tab bar.",
   "permissions": ["tabs", "tabGroups", "storage", "webNavigation"],
   "background": { "service_worker": "src/background.js", "type": "module" },
@@ -15,6 +15,11 @@
     {
       "matches": ["<all_urls>"],
       "js": ["src/content/switcher.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content/pin-keys.js"],
       "run_at": "document_start"
     },
     {
@@ -35,6 +40,12 @@
     "reset-to-home": {
       "suggested_key": { "default": "Alt+Shift+R" },
       "description": "Send the current pinned tab back to its pinned URL"
+    },
+    "toggle-pinned": {
+      "description": "Pin or unpin the current tab (Cmd+E in web pages)"
+    },
+    "remove-pinned": {
+      "description": "Close pinned tab for good (Cmd+Backspace in web pages)"
     }
   }
 }

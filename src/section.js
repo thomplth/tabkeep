@@ -11,6 +11,7 @@ const LAYOUT_RETENTION_MS = 30 * 24 * 60 * 60 * 1_000;
 const CLOSE_ACTIVATION_WINDOW_MS = 1_000;
 
 const expectedRemovals = new Set();
+const selfCreatedTabs = new Set();
 const lastRemovalAt = new Map();
 const asleepTabs = new Set();
 const pendingDiscards = new Map();
@@ -177,24 +178,60 @@ export async function isInSection(tabId) {
   return (await loadState()).known[tabId]?.inSection ?? false;
 }
 
+// Chrome inserts tabs opened from a pinned tab next to it, often inside its group, and reports the
+// most recently opened tab rather than the pinned tab as their opener.
 export async function handleCreated(tab) {
   const state = await loadState();
-  if (state.readyWindows[tab.windowId] && tab.openerTabId !== undefined && (await isInSection(tab.openerTabId))) {
-    await moveBelowDivider(tab.id);
-  }
+  const ownTab = selfCreatedTabs.delete(tab.id) || isDivider(tab);
+  if (state.readyWindows[tab.windowId] && !ownTab) await moveBelowDivider(tab.id);
   await refresh(tab.windowId);
 }
+
+const dividerIndexIn = async (windowId) => (await chrome.tabs.query({ windowId })).find(isDivider)?.index;
 
 export async function moveBelowDivider(tabId) {
   const tab = await chrome.tabs.get(tabId).catch(() => null);
   if (!tab || tab.pinned) return;
-  const dividerIndex = async () => (await chrome.tabs.query({ windowId: tab.windowId })).find(isDivider)?.index;
-  if (!(tab.index < (await dividerIndex()))) return;
+  if (!(tab.index < (await dividerIndexIn(tab.windowId)))) return;
 
   if (tab.groupId !== -1) await chrome.tabs.ungroup(tabId);
   const { index } = await chrome.tabs.get(tabId);
-  const divider = await dividerIndex();
+  const divider = await dividerIndexIn(tab.windowId);
   await chrome.tabs.move(tabId, { index: index < divider ? divider : divider + 1 });
+}
+
+async function moveAboveDivider(tabId) {
+  const tab = await chrome.tabs.get(tabId);
+  if (tab.groupId !== -1) await chrome.tabs.ungroup(tabId);
+  await chrome.tabs.move(tabId, { index: await dividerIndexIn(tab.windowId) });
+}
+
+async function sectionTab(tabId) {
+  const tab = await chrome.tabs.get(tabId).catch(() => null);
+  if (!tab || isDivider(tab)) return null;
+  const dividerIndex = await dividerIndexIn(tab.windowId);
+  if (dividerIndex === undefined) return null;
+  return { tab, inSection: tab.pinned || tab.index < dividerIndex };
+}
+
+export async function togglePinned(tabId) {
+  const found = await sectionTab(tabId);
+  if (!found) return;
+  const { tab, inSection } = found;
+  if (!inSection) return moveAboveDivider(tabId);
+  if (tab.pinned) await chrome.tabs.update(tabId, { pinned: false });
+  await moveBelowDivider(tabId);
+}
+
+export async function removePinned(tabId) {
+  const found = await sectionTab(tabId);
+  if (!found?.inSection) return;
+  if (found.tab.active) {
+    await forgetTab(tabId);
+    await activateMostRecent(found.tab.windowId);
+  }
+  expectedRemovals.add(tabId);
+  await chrome.tabs.remove(tabId);
 }
 
 export async function handleRemoved(tabId, { windowId, isWindowClosing }, removedAt) {
@@ -228,6 +265,7 @@ async function resurrect(info, home) {
     active: false,
     pinned: info.pinned,
   });
+  selfCreatedTabs.add(tab.id);
   discardWhenLoaded(tab.id, { waitForTitle: true });
   const state = await loadState();
   state.homes[tab.id] = home;
@@ -328,6 +366,11 @@ export async function handleActivated({ tabId, windowId }, activatedAt) {
   const movingDown = !previous || previous.index < tab.index;
   const next = movingDown ? (tabs[tab.index + 1] ?? tabs[tab.index - 1]) : (tabs[tab.index - 1] ?? tabs[tab.index + 1]);
   if (next) await chrome.tabs.update(next.id, { active: true });
+}
+
+export async function activeTabId() {
+  const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+  return tab?.id;
 }
 
 export async function resetActiveTabToHome() {

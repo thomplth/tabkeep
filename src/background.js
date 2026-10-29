@@ -1,5 +1,6 @@
 import { serial } from './serial.js';
 import {
+  activeTabId,
   handleActivated,
   handleCreated,
   handleRemoved,
@@ -9,7 +10,9 @@ import {
   prepareAllWindows,
   prepareWindow,
   refresh,
+  removePinned,
   resetActiveTabToHome,
+  togglePinned,
 } from './section.js';
 import { cancelSwitcher, commitSwitcher, forgetTab, replaceTab, stepSwitcher } from './mru.js';
 import { handleNavigationTarget, recordModifierClick } from './autogroup.js';
@@ -55,6 +58,8 @@ const commands = {
   'mru-older': () => stepSwitcher('older'),
   'mru-newer': () => stepSwitcher('newer'),
   'reset-to-home': resetActiveTabToHome,
+  'toggle-pinned': async () => togglePinned(await activeTabId()),
+  'remove-pinned': async () => removePinned(await activeTabId()),
 };
 chrome.commands.onCommand.addListener((command) => commands[command] && serial(commands[command]));
 
@@ -63,5 +68,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
   if (message?.type === 'switcher-step') serial(() => stepSwitcher(message.direction));
   if (message?.type === 'switcher-commit') serial(() => commitSwitcher(message.tabId));
   if (message?.type === 'switcher-cancel') cancelSwitcher();
+  if (message?.type === 'toggle-pinned' && sender.tab) serial(() => togglePinned(sender.tab.id));
+  if (message?.type === 'remove-pinned' && sender.tab) serial(() => removePinned(sender.tab.id));
 });
 chrome.webNavigation.onCreatedNavigationTarget.addListener((details) => handleNavigationTarget(details));

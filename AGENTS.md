@@ -30,6 +30,12 @@ auto-grouping on top of Chrome's native tab bar, with no custom UI.
   visible page and `src/divider.js` retitles the divider, scaling `innerWidth` by the tab's zoom.
   Headless tests simulate a sidebar by shrinking the viewport with `page.setViewport`.
 
+- Chrome inserts tabs opened from a pinned tab (`window.open`, `rel=noopener` links) inside the
+  pinned group and misreports `openerTabId`, so `handleCreated` moves every new tab out of the
+  section except the divider and tabs Tabkeep itself resurrects (`selfCreatedTabs`).
+- `Cmd+E` and `Cmd+Backspace` are caught by `src/content/pin-keys.js` because Chrome reserves them
+  for its own commands; the matching `chrome.commands` ship unbound.
+
 ## Documentation maintenance
 
 - Update `AGENTS.md` whenever implementation changes project-wide architecture, workflows,

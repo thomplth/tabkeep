@@ -51,18 +51,18 @@ test('cmd+clicking a link inside a group adds the new tab to that group', async 
   assert.equal(child.groupTitle, 'Engine');
 });
 
-test('cmd+clicking a link in a pinned tab opens it below the divider in its own group', async () => {
+test('cmd+clicking a link in a pinned tab opens it as a loose tab below the divider', async () => {
   const source = await extension.open(site.url('kanban'));
   const groupId = await extension.group([source], 'Ask');
   await extension.moveGroup(groupId, await extension.dividerIndex());
   const pinnedBefore = (await extension.layout()).slice(0, await extension.dividerIndex());
 
   await clickLink(source, '#link', { modifier: 'Meta' });
-  const child = await extension.waitFor(async () => {
-    const tab = await findTab(site.url('kanban-child'));
-    return tab && tab.groupId !== -1 && tab.groupId !== groupId && tab;
-  });
+  await waitForTab(site.url('kanban-child'));
+  await extension.settle(1_500);
 
+  const child = await findTab(site.url('kanban-child'));
+  assert.equal(child.groupId, -1);
   assert.ok(child.index > (await extension.dividerIndex()));
   assert.deepEqual((await extension.layout()).slice(0, await extension.dividerIndex()), pinnedBefore);
 });
