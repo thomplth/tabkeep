@@ -248,7 +248,7 @@ export async function handleRemoved(tabId, { windowId, isWindowClosing }, remove
   if (isWindowClosing) delete state.readyWindows[windowId];
   if (expectedRemovals.delete(tabId) || isWindowClosing || !info) return;
   if (info.isDivider) {
-    await chrome.tabs.create({ windowId, index: info.index, url: info.url, active: false });
+    await chrome.tabs.create({ windowId, index: await currentIndexOf(info), url: info.url, active: false });
   } else if (info.inSection && home) {
     await resurrect(info, home);
     if (wasActive) await activateMostRecent(windowId);
@@ -257,10 +257,21 @@ export async function handleRemoved(tabId, { windowId, isWindowClosing }, remove
   await refresh(windowId);
 }
 
+// Closing several tabs at once reports each removal separately, while their recorded indices still
+// count the tabs closed alongside them.
+async function currentIndexOf(info) {
+  const liveTabIds = new Set((await chrome.tabs.query({ windowId: info.windowId })).map((tab) => tab.id));
+  const { known } = await loadState();
+  const closedBefore = Object.entries(known).filter(
+    ([id, other]) => other.windowId === info.windowId && other.index < info.index && !liveTabIds.has(Number(id)),
+  ).length;
+  return info.index - closedBefore;
+}
+
 async function resurrect(info, home) {
   const tab = await chrome.tabs.create({
     windowId: info.windowId,
-    index: info.index,
+    index: Math.min(await currentIndexOf(info), await dividerIndexIn(info.windowId)),
     url: home,
     active: false,
     pinned: info.pinned,

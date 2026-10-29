@@ -90,6 +90,21 @@ test('closing every tab of a pinned group recreates the group with its title, co
   assert.equal(revived[0].groupColor, 'purple');
 });
 
+test('closing several pinned tabs at once brings every one back above the divider', async () => {
+  const ids = [];
+  for (const name of ['console', 'account', 'signin']) {
+    const id = await extension.open(site.url(name));
+    await extension.moveAboveDivider(id);
+    ids.push(id);
+  }
+  const before = await extension.layout();
+
+  await extension.close([...ids].reverse());
+  await extension.waitFor(async () => JSON.stringify(await extension.layout()) === JSON.stringify(before), {
+    message: `layout ${JSON.stringify(before)}`,
+  });
+});
+
 test('a group dragged back below the divider closes for real', async () => {
   const a = await extension.open(site.url('scratch'));
   const groupId = await extension.group([a], 'Scratch');
