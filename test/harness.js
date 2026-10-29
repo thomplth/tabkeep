@@ -142,6 +142,12 @@ class ExtensionDriver {
     await this.settle();
   }
 
+  async command(name, tabId) {
+    if (tabId !== undefined) await this.run((tabId) => chrome.tabs.update(tabId, { active: true }), tabId);
+    await this.run((name) => self.runCommand(name), name);
+    await this.settle();
+  }
+
   settle(ms = 600) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }

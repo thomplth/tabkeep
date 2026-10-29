@@ -16,10 +16,12 @@ auto-grouping on top of Chrome's native tab bar, with no custom UI.
   and push `main` to `origin`.
 - After pushing, reload the extension in the human's Chrome so the change is live. It is installed
   unpacked from the primary checkout (ID `oldnhmcppohabfajfbnbaghoilpmcgeh`, profile `Default`),
-  so no install step is needed; if it is missing, ask before loading it. Open
-  `chrome://extensions/?id=oldnhmcppohabfajfbnbaghoilpmcgeh` (e.g. AppleScript `make new tab`),
-  press its **Reload** button with the computer-use skill, confirm the shown version matches
-  `manifest.json` with no errors, then close that tab.
+  so no install step is needed; if it is missing, ask before loading it. Reload headlessly by
+  opening `reload.html`, which calls `chrome.runtime.reload()` and closes with the old extension:
+  `osascript -e 'tell application "Google Chrome" to tell front window to make new tab with
+  properties {URL:"chrome-extension://oldnhmcppohabfajfbnbaghoilpmcgeh/reload.html"}'`.
+  Confirm with the `version` in the profile's `Secure Preferences` for that ID. Fall back to
+  the computer-use skill on `chrome://extensions` only if this fails.
 - The repository is public. Never commit credentials, tokens, or personal data.
 
 ## Test-driven development
@@ -39,8 +41,10 @@ auto-grouping on top of Chrome's native tab bar, with no custom UI.
 - Chrome inserts tabs opened from a pinned tab (`window.open`, `rel=noopener` links) inside the
   pinned group and misreports `openerTabId`, so `handleCreated` moves every new tab out of the
   section except the divider and tabs Tabkeep itself resurrects (`selfCreatedTabs`).
-- `Cmd+E` and `Cmd+Backspace` are caught by `src/content/pin-keys.js` because Chrome reserves them
-  for its own commands; the matching `chrome.commands` ship unbound.
+- Chrome allows at most four `suggested_key` commands; a fifth makes the extension fail to load.
+  Page-level key catching for `Cmd+…` chords was dropped because Chrome's menu takes them first.
+- Headless Chrome never delivers shortcuts to `chrome.commands`; tests call `self.runCommand`
+  through `extension.command(name, tabId)`.
 
 ## Documentation maintenance
 

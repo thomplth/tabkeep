@@ -61,14 +61,15 @@ const commands = {
   'toggle-pinned': async () => togglePinned(await activeTabId()),
   'remove-pinned': async () => removePinned(await activeTabId()),
 };
-chrome.commands.onCommand.addListener((command) => commands[command] && serial(commands[command]));
+const runCommand = (command) => commands[command] && serial(commands[command]);
+chrome.commands.onCommand.addListener(runCommand);
+// Headless Chrome never delivers keyboard shortcuts to chrome.commands, so tests call this instead.
+self.runCommand = runCommand;
 
 chrome.runtime.onMessage.addListener((message, sender) => {
   if (message?.type === 'modifier-click' && sender.tab) recordModifierClick(sender.tab.id);
   if (message?.type === 'switcher-step') serial(() => stepSwitcher(message.direction));
   if (message?.type === 'switcher-commit') serial(() => commitSwitcher(message.tabId));
   if (message?.type === 'switcher-cancel') cancelSwitcher();
-  if (message?.type === 'toggle-pinned' && sender.tab) serial(() => togglePinned(sender.tab.id));
-  if (message?.type === 'remove-pinned' && sender.tab) serial(() => removePinned(sender.tab.id));
 });
 chrome.webNavigation.onCreatedNavigationTarget.addListener((details) => handleNavigationTarget(details));
