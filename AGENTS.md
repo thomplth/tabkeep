@@ -14,6 +14,12 @@ auto-grouping on top of Chrome's native tab bar, with no custom UI.
 - Use one task per worktree. Keep commits scoped, with imperative messages.
 - After verification, commit the task, integrate it into `main`, remove the worktree and branch,
   and push `main` to `origin`.
+- After pushing, reload the extension in the human's Chrome so the change is live. It is installed
+  unpacked from the primary checkout (ID `oldnhmcppohabfajfbnbaghoilpmcgeh`, profile `Default`),
+  so no install step is needed; if it is missing, ask before loading it. Open
+  `chrome://extensions/?id=oldnhmcppohabfajfbnbaghoilpmcgeh` (e.g. AppleScript `make new tab`),
+  press its **Reload** button with the computer-use skill, confirm the shown version matches
+  `manifest.json` with no errors, then close that tab.
 - The repository is public. Never commit credentials, tokens, or personal data.
 
 ## Test-driven development
